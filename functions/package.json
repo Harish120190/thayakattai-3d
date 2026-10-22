@@ -1,0 +1,16 @@
+{
+  "name": "thaya-netrik-functions",
+  "version": "1.0.0",
+  "description": "Server-authoritative backend & game logic for Thaya Netrik multiplayer",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test test/game_engine.test.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

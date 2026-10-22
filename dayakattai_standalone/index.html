@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chola Dynasty Thayakattai 3D — சோழர் தாயக்கட்டை</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Three.js and OrbitControls -->
+  <script src="lib/three.min.js"></script>
+  <script src="lib/OrbitControls.js"></script>
+</head>
+<body>
+  <!-- 3D WebGL Canvas Viewport -->
+  <div id="webgl-container"></div>
+
+  <!-- 3D Camera Controls Floating Bar -->
+  <div class="camera-toolbar">
+    <button id="cam-top-btn" class="cam-btn active" title="Classic Top-Down View matching original photo">
+      <span>🎯 Photo View</span>
+    </button>
+    <button id="cam-3d-btn" class="cam-btn" title="3D Tabletop Isometric Perspective">
+      <span>📐 Chola 3D</span>
+    </button>
+    <button id="cam-dice-btn" class="cam-btn" title="Close-Up on Carved Hardwood Dice">
+      <span>🎲 Dice Cam</span>
+    </button>
+    <button id="cam-coins-btn" class="cam-btn" title="Close-Up on Chola Royal Coins & Trays">
+      <span>🪙 Coin Trays</span>
+    </button>
+    <button id="cam-reset-btn" class="cam-btn" title="Reset Camera">
+      <span>🔄 Reset View</span>
+    </button>
+  </div>
+
+  <!-- UI Overlay Layer -->
+  <div class="ui-overlay">
+    <!-- Top Action Toolbar -->
+    <header class="top-nav-bar">
+      <div class="nav-brand">
+        <span class="game-badge">IMPERIAL CHOLA DYNASTY</span>
+        <h1 class="nav-title">SOZHAR THAYAKATTAI 3D</h1>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Board Style (Carved Rosewood vs Classic Yellow) -->
+        <button id="board-style-btn" class="toolbar-btn" title="Toggle Board Style: Antique Carved Rosewood / Classic Yellow">
+          <span class="btn-icon">🪵</span>
+          <span id="board-style-text">Board: Antique Carved</span>
+        </button>
+
+        <!-- Dice Style (Traditional Sticks vs Chola Cubes) -->
+        <button id="dice-style-btn" class="toolbar-btn" title="Toggle between Traditional Rectangular Sticks and Hardwood Cubes">
+          <span class="btn-icon">🎲</span>
+          <span id="dice-style-text">Dice: Traditional Sticks</span>
+        </button>
+
+        <!-- Game Mode (vs AI / Pass & Play) -->
+        <button id="mode-btn" class="toolbar-btn" title="Toggle AI / 2-Player Pass & Play">
+          <span class="btn-icon">🤖</span>
+          <span id="mode-btn-text">vs Imperial AI</span>
+        </button>
+
+        <!-- AI Difficulty -->
+        <button id="diff-btn" class="toolbar-btn" title="AI Bot Intelligence">
+          <span class="btn-icon">⚔️</span>
+          <span id="diff-btn-text">Raja Raja Chola</span>
+        </button>
+
+        <!-- Sound FX Toggle -->
+        <button id="sound-btn" class="toolbar-btn icon-only" title="Toggle Sound FX">
+          <span id="sound-icon">🔊</span>
+        </button>
+
+        <!-- Spoken Voice Callouts Toggle -->
+        <button id="voice-btn" class="toolbar-btn icon-only" title="Toggle Tamil/English Voice Announcer">
+          <span id="voice-icon">🗣️</span>
+        </button>
+
+        <!-- Match Statistics -->
+        <button id="stats-btn" class="toolbar-btn icon-only" title="Match Statistics">
+          <span>📊</span>
+        </button>
+
+        <!-- Rules -->
+        <button id="rules-btn" class="toolbar-btn icon-only" title="Rules & Chola History">
+          <span>📜</span>
+        </button>
+
+        <!-- Restart Match -->
+        <button id="restart-btn" class="toolbar-btn primary-reset" title="New Match">
+          <span class="btn-icon">🔄</span>
+          <span>New Game</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Side Floating Control HUD -->
+    <aside class="control-hud">
+      <!-- Turn Status Card -->
+      <div class="hud-card turn-card" id="turn-card">
+        <div class="turn-header">
+          <span class="turn-dot" id="turn-dot"></span>
+          <span class="turn-player-name" id="turn-player-name">Chola Gold's Turn</span>
+        </div>
+        <div class="turn-hint" id="turn-hint-text">Roll the Chola hardwood dice!</div>
+      </div>
+
+      <!-- Dice Roll Result Card -->
+      <div class="hud-card roll-card">
+        <div class="roll-badge-wrapper">
+          <span class="roll-tamil-name" id="roll-tamil-name">தாயக்கட்டை</span>
+          <span class="roll-number" id="roll-number">-</span>
+          <span class="roll-tag-pill" id="roll-tag-pill">READY TO ROLL</span>
+        </div>
+
+        <div class="roll-action-row">
+          <button id="roll-btn" class="roll-trigger-btn">
+            <span class="dice-icon">🎲</span>
+            <span class="roll-btn-text">ROLL DICE</span>
+          </button>
+          <button id="hint-btn" class="hint-trigger-btn" title="Tactical Hint for best move">
+            <span>💡 HINT</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Score & Progression Dashboard -->
+      <div class="hud-card score-card">
+        <h4 class="card-title">ROYAL BATTLE PROGRESSION</h4>
+        
+        <!-- Team 1 Row (Chola Gold) -->
+        <div class="team-progress-row row-team1" id="score-row-team1">
+          <div class="team-label">
+            <span class="team-badge badge-team1">🐯</span>
+            <span class="team-name">Chola Gold (தங்கப் புலி)</span>
+          </div>
+          <div class="team-stats">
+            <span class="stat-item" title="Coins in Tray">🏠 <b id="team1-base-count">4</b></span>
+            <span class="stat-item" title="Active on Board">🏃 <b id="team1-track-count">0</b></span>
+            <span class="stat-item" title="Captures (Vettu)">⚔️ <b id="team1-vettu-count">0</b></span>
+            <span class="stat-item highlight" title="Summit Reached">👑 <b id="team1-home-count">0 / 4</b></span>
+          </div>
+        </div>
+
+        <!-- Team 2 Row (Chola Ruby) -->
+        <div class="team-progress-row row-team2" id="score-row-team2">
+          <div class="team-label">
+            <span class="team-badge badge-team2">🦁</span>
+            <span class="team-name" id="team2-label-name">Chola Ruby (AI Bot)</span>
+          </div>
+          <div class="team-stats">
+            <span class="stat-item" title="Coins in Tray">🏠 <b id="team2-base-count">4</b></span>
+            <span class="stat-item" title="Active on Board">🏃 <b id="team2-track-count">0</b></span>
+            <span class="stat-item" title="Captures (Vettu)">⚔️ <b id="team2-vettu-count">0</b></span>
+            <span class="stat-item highlight" title="Summit Reached">👑 <b id="team2-home-count">0 / 4</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Rolls History -->
+      <div class="hud-card history-card">
+        <div class="history-header">
+          <span>ROLL HISTORY</span>
+        </div>
+        <div class="history-pill-list" id="history-pills">
+          <span class="history-empty">—</span>
+        </div>
+      </div>
+
+      <!-- Live Commentary Ticker -->
+      <div class="hud-card ticker-card">
+        <div class="ticker-header">COURT CHRONICLE</div>
+        <div class="ticker-message" id="ticker-msg">
+          Welcome to Imperial Chola Dynasty Thayakattai 3D! Roll the dice to enter the battlefield.
+        </div>
+      </div>
+    </aside>
+
+    <!-- Floating 3D Event Notification Banner -->
+    <div class="board-floating-banner" id="board-banner">
+      <span class="banner-icon" id="banner-icon">⚔️</span>
+      <span class="banner-title" id="banner-title">VETTU!</span>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div class="modal-backdrop" id="rules-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>📜 Chola Dynasty Thayakattai (சோழர் தாயக்கட்டை)</h2>
+        <button class="modal-close" id="close-rules-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="history-callout">
+          <p><strong>Historical Context:</strong> In the golden age of the Imperial Chola Dynasty (10th–12th century CE), under Emperor Raja Raja Chola I and Rajendra Chola I, <em>Thayakattai</em> (தாயக்கட்டை) was played in royal temple mandapams and palace pavilions. The board is carved from royal teak and rosewood, inlaid with ivory tracks, jasper red safe havens, and crowned by a solid lathe-turned brass summit boss.</p>
+        </div>
+
+        <h3>1. The Dice (பகடை / தாயக்கட்டை)</h3>
+        <p>You can toggle between two authentic traditional styles:</p>
+        <ul>
+          <li><strong>Chola Hardwood Cubes:</strong> Two solid turned teakwood dice with circular brass-inlaid ring pips (as shown on the board). Rolling <strong>1-1 (Thayam)</strong> or <strong>6-6 (Dayam 12)</strong> unlocks tokens from the royal tray and grants bonus rolls!</li>
+          <li><strong>Traditional Brass Sticks:</strong> Elongated 4-sided sticks with faces (0/Blank, 1, 2, 3) yielding traditional outcomes: <strong>Thayam (1)</strong>, 2, 3, 4, <strong>Anju (5)</strong>, <strong>Aaru (6)</strong>, and <strong>Dayam (12)</strong>.</li>
+        </ul>
+
+        <h3>2. Spawning Royal Medallion Coins</h3>
+        <p>Tokens rest in the carved wooden trays (Left: <strong>Chola Gold Tigers</strong>, Right: <strong>Chola Ruby Warriors</strong>). Rolling a <strong>1 (Thayam)</strong> or <strong>12 (Dayam)</strong> allows you to march a coin from your tray onto the starting red square.</p>
+
+        <h3>3. Safe Havens (மலை / Red Inlaid Squares)</h3>
+        <p>All deep red jasper inlaid squares (corners, center cross, and bottom terminal) are sacred sanctuaries. Tokens resting on red squares <strong>cannot be captured</strong>!</p>
+
+        <h3>4. Captures (Vettu / வெட்டு)</h3>
+        <p>Landing on an opponent's coin on any standard ivory square captures it (<em>Vettu!</em>). The defeated coin is knocked back to its wooden tray, and the attacker receives an <strong>Immediate Extra Roll</strong>!</p>
+
+        <h3>5. Ascending the Gopuram Staircase to the Summit</h3>
+        <p>After navigating the outer circuit, coins enter the stepped temple gopuram staircase ascending towards the center column. The first ruler to guide all 4 royal coins to the sacred <strong>Summit Brass Boss</strong> achieves TRIUMPH!</p>
+
+        <h3>6. 3D Camera Controls</h3>
+        <ul>
+          <li><strong>Left Click + Drag:</strong> Freely rotate and inspect the hand-carved relief 360°</li>
+          <li><strong>Mouse Wheel:</strong> Zoom in to inspect the engraved Chola Tiger coins and brass dice pips</li>
+          <li><strong>Right Click + Drag:</strong> Pan camera across the royal Persian carpet</li>
+          <li><strong>Preset Buttons:</strong> Instant switch between Photo Top-Down, Chola 3D, Dice Cam, and Coin Trays</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-primary-btn" id="understood-btn">Enter Royal Match</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Statistics Modal -->
+  <div class="modal-backdrop" id="stats-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>📊 Royal Court Chronicle & Analytics</h2>
+        <button class="modal-close" id="close-stats-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-metric-grid" id="stats-metric-grid"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-primary-btn" id="close-stats-footer-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Celebration Modal -->
+  <div class="modal-backdrop" id="victory-modal">
+    <div class="modal-card victory-card">
+      <div class="trophy-icon">👑</div>
+      <h2 id="victory-title">CHOLA GOLD TRIUMPHS!</h2>
+      <p id="victory-desc">All royal medallion coins have ascended the sacred Summit Brass Boss!</p>
+      <div class="victory-details" id="victory-details"></div>
+      <div class="modal-footer">
+        <button class="modal-primary-btn" id="play-again-btn">Play Again 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Synthesis & 3D Game Engine Scripts -->
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

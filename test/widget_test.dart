@@ -1,0 +1,29 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:thaya_netrik/app/app.dart';
+import 'package:thaya_netrik/app/providers.dart';
+
+void main() {
+  testWidgets('Thaya Netrik app launches and displays title and modes', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: const ThayaNetrikApp(),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify app title and modes are visible
+    expect(find.text('Thaya Netrik'), findsWidgets);
+    expect(find.text('Local Pass & Play'), findsOneWidget);
+    expect(find.text('Play Against AI'), findsOneWidget);
+    expect(find.text('Create Room'), findsOneWidget);
+  });
+}
